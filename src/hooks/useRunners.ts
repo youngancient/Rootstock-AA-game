@@ -20,7 +20,7 @@ const useRunners = () => {
       setSigner(newSigner);
     });
   }, [provider, signer]);
-  return { provider, signer, readOnlyProvider: jsonRpcProvider };
+  return { provider, signer, readOnlyProvider: jsonRpcProvider, walletProvider };
 };
 
 export default useRunners;

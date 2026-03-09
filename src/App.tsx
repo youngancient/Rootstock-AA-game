@@ -4,6 +4,7 @@ import "./App.css";
 import "./connection.ts";
 import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
 import { formatAddress } from "./utils.ts";
+import { useEtherspot } from "./hooks/useEtherspot.ts";
 import { useReadFunctions } from "./hooks/contractHook/useReadContract.ts";
 import { useWriteFunctions } from "./hooks/contractHook/useWriteContract.ts";
 import { useEffect } from "react";
@@ -11,6 +12,7 @@ import { useEffect } from "react";
 function App() {
   const { isConnected, address } = useAppKitAccount();
   const { open } = useAppKit();
+  const { smartAccountAddress, isInitializing } = useEtherspot();
 
   const {
     goldBalance,
@@ -50,6 +52,13 @@ function App() {
           </div>
         ) : (
           <div className="dashboard">
+            <div className="account-info">
+              <p><strong>EOA Address:</strong> {formatAddress(address ?? "")}</p>
+              <p>
+                <strong>Smart Account (Etherspot):</strong>{" "}
+                {isInitializing ? "Initializing..." : smartAccountAddress ? formatAddress(smartAccountAddress) : "Not created"}
+              </p>
+            </div>
             <div className="stats-panel">
               <div className="stat-card">
                 <h3>Gold Balance</h3>
@@ -67,7 +76,7 @@ function App() {
                 onClick={() => mineGold(fetchPlayerStats)}
                 disabled={isMining || isUpgrading}
               >
-                {isMining ? "Mining... (Check Wallet)" : "⛏️ Mine Gold"}
+                {isMining ? "Mining..." : "⛏️ Mine Gold"}
               </button>
 
               <button
@@ -76,13 +85,16 @@ function App() {
                 disabled={isMining || isUpgrading || goldBalance < nextUpgradeCost}
               >
                 {isUpgrading
-                  ? "Upgrading... (Check Wallet)"
+                  ? "Upgrading..."
                   : `⬆️ Upgrade Pickaxe (Costs ${nextUpgradeCost} Gold)`}
               </button>
             </div>
 
             <div className="friction-notice">
-              <p>Experiencing friction? Having to sign every single transaction is slow. Account Abstraction can fix this!</p>
+              <p>
+                ✨ <strong>Account Abstraction Active!</strong> Transactions are now gasless and routed through your Etherspot Smart Account.
+                You will only need to sign the UserOperation once.
+              </p>
             </div>
           </div>
         )}
