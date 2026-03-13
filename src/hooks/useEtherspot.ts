@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { PrimeSdk, EtherspotBundler, Web3WalletProvider } from "@etherspot/prime-sdk";
+import { PrimeSdk, EtherspotBundler } from "@etherspot/prime-sdk";
 import useRunners from "./useRunners";
+import { id } from "ethers";
 
 export const useEtherspot = () => {
-    const { provider, signer, walletProvider } = useRunners();
+    const { provider, signer } = useRunners();
     const [primeSdk, setPrimeSdk] = useState<PrimeSdk | null>(null);
     const [smartAccountAddress, setSmartAccountAddress] = useState<string | null>(null);
     const [isInitializing, setIsInitializing] = useState(false);
@@ -12,7 +13,7 @@ export const useEtherspot = () => {
         let isMounted = true;
 
         const initSdk = async () => {
-            if (!provider || !signer || !walletProvider) {
+            if (!provider || !signer) {
                 if (isMounted) {
                     setPrimeSdk(null);
                     setSmartAccountAddress(null);
@@ -22,39 +23,32 @@ export const useEtherspot = () => {
 
             setIsInitializing(true);
             try {
-                // Etherspot requires a Web3Provider wrapper around the Ethers provider
-                // or a custom wrapper for AppKit/Ethers v6. 
-                // We'll pass the private key if available, but for AppKit we use the provider.
-                // Actually, PrimeSdk supports EIP1193 provider directly.
-                // Let's use the underlying wallet provider from AppKit if possible.
+                const userAddress = await signer.getAddress();
+                const storageKey = `session_key_${userAddress}`;
+                let sessionPrivateKey = localStorage.getItem(storageKey);
 
-                // Wait, Etherspot Prime SDK requires the EOA private key, OR an EIP1193 provider.
-                // Let's use the EIP1193 provider from the Ethers BrowserProvider.
-                // Note: as of @etherspot/prime-sdk v1.x, we instantiate it with a Web3Provider instance
+                if (!sessionPrivateKey) {
+                    const message = `Welcome to Clicker Miner!\n\nSign this message to generate your secure local session key for gasless transactions.\n\nThis will not trigger any on-chain transactions or cost any gas.\n\nWallet: ${userAddress}`;
+                    const signature = await signer.signMessage(message);
 
-                // For ethers v6 integrations with PrimeSdk, we might need a custom approach.
-                // Let's try passing the underlying provider. 
-                // According to Etherspot docs: mappedProvider = new Web3Provider(window.ethereum)
-                // With AppKit, provider (BrowserProvider) has `.provider` (Eip1193Provider).
-
-
-                const mappedProvider = new Web3WalletProvider(walletProvider as any);
-                await mappedProvider.refresh();
+                    // Generate a deterministic private key from the signature string
+                    sessionPrivateKey = id(signature);
+                    localStorage.setItem(storageKey, sessionPrivateKey);
+                }
 
                 const projectKey = import.meta.env.VITE_ETHERSPOT_PROJECT_KEY || "";
 
                 const bundlerProvider = new EtherspotBundler(
                     31,
                     projectKey,
-                    "https://rootstocktestnet-bundler.etherspot.io/"
+                    // "https://rootstocktestnet-bundler.etherspot.io/"
                 );
 
 
-                const sdk = new PrimeSdk(mappedProvider, {
+                const sdk = new PrimeSdk({ privateKey: sessionPrivateKey }, {
                     chainId: 31, // Rootstock Testnet
                     bundlerProvider,
                 });
-
                 const address = await sdk.getCounterFactualAddress();
 
                 if (isMounted) {

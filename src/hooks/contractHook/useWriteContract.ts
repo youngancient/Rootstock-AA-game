@@ -37,27 +37,50 @@ export const useWriteFunctions = () => {
       });
 
       // Estimate gas and get the UserOperation object
-      const userOp = await primeSdk.estimate({
-        paymasterDetails: {
-          url: `https://arka.etherspot.io?apiKey=${projectKey}&chainId=31`,
-          context: { mode: "sponsor" }
+      const userOp = await primeSdk.estimate(
+        {
+          paymasterDetails: {
+            url: `https://arka.etherspot.io?apiKey=${projectKey}&chainId=31`,
+            context: { mode: "sponsor" }
+          }
         }
-      });
+      );
+      console.log("user op => ", userOp);
 
       toast.update("mining-tx", { render: "Waiting for wallet signature...", type: "info", autoClose: false });
 
       // Send the UserOperation (this triggers the wallet signature for the UserOp hash)
       const uoHash = await primeSdk.send(userOp);
+      console.log("hash => ", uoHash);
+      toast.update("mining-tx", { render: `Transaction submitted! Mining gold in the background...`, type: "info", autoClose: 5000 });
 
-      toast.update("mining-tx", { render: `Mining UserOp submitted! Hash: ${uoHash.substring(0, 10)}... Please wait...`, type: "info", autoClose: false });
-
-      // Wait for the bundler to process the UserOp (no wait method easily available on PrimeSdk usually, we might need to poll, but let's assume standard behavior or use getNativeTransactionReceipt)
-      // PrimeSdk abstracting this might just require waiting a few seconds or polling for receipt
-      // For simplicity, we'll delay and assume success if it didn't throw initially, but a real app should poll
-      await new Promise(resolve => setTimeout(resolve, 8000));
-
-      toast.update("mining-tx", { render: "Gold successfully mined gaslessly!", type: "success", autoClose: 3000 });
+      // Optimistic update: unblock UI immediately
+      setIsMining(false);
       if (onSuccess) onSuccess();
+
+      // Poll for the Real Receipt in the background
+      (async () => {
+        try {
+          let receipt = null;
+          let retries = 0;
+          while (!receipt && retries < 120) {
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+            receipt = await primeSdk.getUserOpReceipt(uoHash);
+            retries++;
+          }
+          if (receipt && receipt.success) {
+            toast.success("✅ Gold successfully mined on-chain!");
+          } else if (receipt && receipt.success === false) {
+            toast.error(`❌ Mining failed on-chain: ${receipt.reason || "Unknown"}`);
+          } else {
+            toast.warn("⚠️ Mining transaction took too long to confirm, but might still succeed.");
+          }
+        } catch (e) {
+          console.error("Background receipt polling error:", e);
+        }
+      })();
+
+      return;
     } catch (error: any) {
       console.error(error);
       const decodedError = await errorDecoder.decode(error);
@@ -94,12 +117,35 @@ export const useWriteFunctions = () => {
       toast.update("upgrade-tx", { render: "Waiting for wallet signature...", type: "info", autoClose: false });
 
       const uoHash = await primeSdk.send(userOp);
-      toast.update("upgrade-tx", { render: `Upgrade UserOp submitted! Hash: ${uoHash.substring(0, 10)}... Please wait...`, type: "info", autoClose: false });
+      toast.update("upgrade-tx", { render: `Upgrade submitted! Upgrading pickaxe in the background...`, type: "info", autoClose: 5000 });
 
-      await new Promise(resolve => setTimeout(resolve, 8000));
-
-      toast.update("upgrade-tx", { render: "Pickaxe successfully upgraded!", type: "success", autoClose: 3000 });
+      // Optimistic update: unblock UI immediately
+      setIsUpgrading(false);
       if (onSuccess) onSuccess();
+
+      // Poll for the Real Receipt in the background
+      (async () => {
+        try {
+          let receipt = null;
+          let retries = 0;
+          while (!receipt && retries < 12) {
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+            receipt = await primeSdk.getUserOpReceipt(uoHash);
+            retries++;
+          }
+          if (receipt && receipt.success) {
+            toast.success("✅ Pickaxe successfully upgraded on-chain!");
+          } else if (receipt && receipt.success === false) {
+            toast.error(`❌ Upgrade failed on-chain: ${receipt.reason || "Unknown"}`);
+          } else {
+            toast.warn("⚠️ Upgrade transaction took too long to confirm, but might still succeed.");
+          }
+        } catch (e) {
+          console.error("Background receipt polling error:", e);
+        }
+      })();
+
+      return;
     } catch (error: any) {
       console.error(error);
       const decodedError = await errorDecoder.decode(error);
