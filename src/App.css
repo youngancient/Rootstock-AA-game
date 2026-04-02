@@ -181,3 +181,32 @@ h1 {
   50% { opacity: 1; }
   100% { opacity: 0.7; }
 }
+
+.address-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.copy-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fdb300;
+  transition: transform 0.2s, filter 0.2s;
+  filter: grayscale(100%);
+  outline: none;
+}
+
+.copy-btn:focus {
+  outline: none;
+}
+
+.copy-btn:hover {
+  transform: scale(1.1);
+  filter: grayscale(0%);
+}

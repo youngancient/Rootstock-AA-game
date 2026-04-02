@@ -7,6 +7,7 @@ import { formatAddress } from "./utils.ts";
 import { useReadFunctions } from "./hooks/contractHook/useReadContract.ts";
 import { useWriteFunctions } from "./hooks/contractHook/useWriteContract.ts";
 import { useEffect } from "react";
+import { CopyButton } from "./components/CopyButton.tsx";
 
 function App() {
   const { isConnected, address } = useAppKitAccount();
@@ -50,6 +51,15 @@ function App() {
           </div>
         ) : (
           <div className="dashboard">
+            <div className="account-info">
+              <p>
+                <strong>Account:</strong>
+                {address ? <span className="address-container">
+                    {formatAddress(address)}
+                    <CopyButton textToCopy={address} />
+                  </span> : "Not connected"}
+              </p>
+            </div>
             <div className="stats-panel">
               <div className="stat-card">
                 <h3>Gold Balance</h3>
