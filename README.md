@@ -32,7 +32,7 @@ Ensure you have the following installed and are familiar with:
 ### 2. Installation
 Clone the repository and install the dependencies:
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/youngancient/Rootstock-AA-game.git
 cd Rootstock-AA-game
 npm install
 ```
