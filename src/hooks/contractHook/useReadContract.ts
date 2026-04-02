@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useGameContract } from "../useContracts";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { ethers } from "ethers";
+import { useEtherSpot } from "../useEtherspot";
 
 export const useReadFunctions = () => {
   const gameContract = useGameContract();
@@ -12,13 +13,15 @@ export const useReadFunctions = () => {
   const [nextUpgradeCost, setNextUpgradeCost] = useState<number>(0);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
 
+  const {smartAccountAddress} = useEtherSpot();
+
   const fetchPlayerStats = useCallback(async () => {
-    if (!gameContract || !address) return;
+    if (!gameContract || !smartAccountAddress) return;
 
     setIsLoadingStats(true);
     try {
       // getPlayerStats returns (uint256 gold, uint256 level, uint256 nextUpgradeCost)
-      const stats = await gameContract.getPlayerStats(address);
+      const stats = await gameContract.getPlayerStats(smartAccountAddress);
 
       setGoldBalance(Number(ethers.formatUnits(stats[0], 0)));
       setPickaxeLevel(Number(ethers.formatUnits(stats[1], 0)));
@@ -28,7 +31,7 @@ export const useReadFunctions = () => {
     } finally {
       setIsLoadingStats(false);
     }
-  }, [gameContract, address]);
+  }, [gameContract, smartAccountAddress]);
 
   return {
     goldBalance,

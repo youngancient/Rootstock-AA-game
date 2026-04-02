@@ -8,6 +8,7 @@ import { useReadFunctions } from "./hooks/contractHook/useReadContract.ts";
 import { useWriteFunctions } from "./hooks/contractHook/useWriteContract.ts";
 import { useEffect } from "react";
 import { CopyButton } from "./components/CopyButton.tsx";
+import { useEtherSpot } from "./hooks/useEtherspot.ts";
 
 function App() {
   const { isConnected, address } = useAppKitAccount();
@@ -21,7 +22,10 @@ function App() {
     fetchPlayerStats,
   } = useReadFunctions();
 
-  const { mineGold, upgradePickaxe, isMining, isUpgrading } = useWriteFunctions();
+  const { mineGold, upgradePickaxe, isMining, isUpgrading } =
+    useWriteFunctions();
+
+  const { smartAccountAddress, isInititalizing } = useEtherSpot();
 
   // Fetch stats when wallet connects
   useEffect(() => {
@@ -46,28 +50,42 @@ function App() {
         {!isConnected ? (
           <div className="welcome-screen">
             <h2>Welcome to Clicker Miner</h2>
-            <p>Connect your wallet to start mining gold on the Rootstock Testnet.</p>
-            <p className="hint">Note: Every action requires a wallet signature!</p>
+            <p>
+              Connect your wallet to start mining gold on the Rootstock Testnet.
+            </p>
+            <p className="hint">
+              Note: Every action requires a wallet signature!
+            </p>
           </div>
         ) : (
           <div className="dashboard">
             <div className="account-info">
               <p>
                 <strong>Account:</strong>
-                {address ? <span className="address-container">
-                    {formatAddress(address)}
-                    <CopyButton textToCopy={address} />
-                  </span> : "Not connected"}
+                {isInititalizing ? (
+                  "Initializing..."
+                ) : smartAccountAddress ? (
+                  <span className="address-container">
+                    {formatAddress(smartAccountAddress)}
+                    <CopyButton textToCopy={smartAccountAddress} />
+                  </span>
+                ) : (
+                  "Not connected"
+                )}
               </p>
             </div>
             <div className="stats-panel">
               <div className="stat-card">
                 <h3>Gold Balance</h3>
-                <p className="stat-value">{isLoadingStats ? "..." : goldBalance}</p>
+                <p className="stat-value">
+                  {isLoadingStats ? "..." : goldBalance}
+                </p>
               </div>
               <div className="stat-card">
                 <h3>Pickaxe Level</h3>
-                <p className="stat-value">{isLoadingStats ? "..." : pickaxeLevel}</p>
+                <p className="stat-value">
+                  {isLoadingStats ? "..." : pickaxeLevel}
+                </p>
               </div>
             </div>
 
@@ -81,9 +99,13 @@ function App() {
               </button>
 
               <button
-                className={`action-btn upgrade-btn ${isUpgrading ? "loading" : ""}`}
+                className={`action-btn upgrade-btn ${
+                  isUpgrading ? "loading" : ""
+                }`}
                 onClick={() => upgradePickaxe(fetchPlayerStats)}
-                disabled={isMining || isUpgrading || goldBalance < nextUpgradeCost}
+                disabled={
+                  isMining || isUpgrading || goldBalance < nextUpgradeCost
+                }
               >
                 {isUpgrading
                   ? "Upgrading... (Check Wallet)"
@@ -92,7 +114,10 @@ function App() {
             </div>
 
             <div className="friction-notice">
-              <p>Experiencing friction? Having to sign every single transaction is slow. Account Abstraction can fix this!</p>
+              <p>
+                Experiencing friction? Having to sign every single transaction
+                is slow. Account Abstraction can fix this!
+              </p>
             </div>
           </div>
         )}
