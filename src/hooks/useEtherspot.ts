@@ -40,8 +40,7 @@ export const useEtherspot = () => {
 
                 const bundlerProvider = new EtherspotBundler(
                     31,
-                    projectKey,
-                    // "https://rootstocktestnet-bundler.etherspot.io/"
+                    projectKey
                 );
 
 

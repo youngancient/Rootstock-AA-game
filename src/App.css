@@ -47,7 +47,7 @@ h1 {
   color: #fdb300;
   text-transform: uppercase;
   letter-spacing: 2px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .welcome-screen {
@@ -87,7 +87,7 @@ h1 {
   border-radius: 16px;
   min-width: 200px;
   border: 1px solid #444;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
   transition: transform 0.2s;
 }
 
@@ -177,7 +177,44 @@ h1 {
 }
 
 @keyframes pulse {
-  0% { opacity: 0.7; }
-  50% { opacity: 1; }
-  100% { opacity: 0.7; }
+  0% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.7;
+  }
+}
+
+.address-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.copy-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fdb300;
+  transition: transform 0.2s, filter 0.2s;
+  filter: grayscale(100%);
+  outline: none;
+}
+
+.copy-btn:focus {
+  outline: none;
+}
+
+.copy-btn:hover {
+  transform: scale(1.1);
+  filter: grayscale(0%);
 }

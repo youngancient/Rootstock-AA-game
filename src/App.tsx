@@ -8,6 +8,7 @@ import { useEtherspot } from "./hooks/useEtherspot.ts";
 import { useReadFunctions } from "./hooks/contractHook/useReadContract.ts";
 import { useWriteFunctions } from "./hooks/contractHook/useWriteContract.ts";
 import { useEffect } from "react";
+import { CopyButton } from "./components/CopyButton.tsx";
 
 function App() {
   const { isConnected, address } = useAppKitAccount();
@@ -53,10 +54,14 @@ function App() {
         ) : (
           <div className="dashboard">
             <div className="account-info">
-              <p><strong>EOA Address:</strong> {formatAddress(address ?? "")}</p>
               <p>
                 <strong>Smart Account (Etherspot):</strong>{" "}
-                {isInitializing ? "Initializing..." : smartAccountAddress ? formatAddress(smartAccountAddress) : "Not created"}
+                {isInitializing ? "Initializing..." : smartAccountAddress ? (
+                  <span className="address-container">
+                    {formatAddress(smartAccountAddress)}
+                    <CopyButton textToCopy={smartAccountAddress} />
+                  </span>
+                ) : "Not created"}
               </p>
             </div>
             <div className="stats-panel">
